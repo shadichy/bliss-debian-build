@@ -1,0 +1,11 @@
+Package: dummy
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 1
+Maintainer: Shadichy <shadichy.dev@gmail.com>
+Architecture: amd64
+Multi-Arch: foreign
+Version: 1.0.0
+Description: DUMMY

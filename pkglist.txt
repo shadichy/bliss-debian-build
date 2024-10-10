@@ -1,0 +1,46 @@
+# Core
+sysvinit-core
+init-system-helpers
+bash
+busybox
+
+# X11
+xserver-xorg-video-all      
+xserver-xorg-core
+xserver-xorg-input-all
+xserver-xorg-video-intel
+xserver-xorg-input-wacom
+xinit
+
+# GRUB2
+grub-common
+grub2-common
+grub-pc-bin
+grub-efi-ia32-bin
+grub-efi-amd64-bin
+
+# Essentials
+e2fsprogs
+exfatprogs
+dosfstools
+f2fs-tools
+btrfs-progs
+efibootmgr
+
+# Basic GUI's
+jwm
+xterm
+mc
+
+# Main
+calamares
+calamares-extensions
+calamares-extensions-data
+gparted
+
+# Miscs
+htop
+fastfetch
+gxmessage
+consolekit
+ntfs-3g
