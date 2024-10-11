@@ -5,7 +5,7 @@ set -e
 unset TMP TEMP TMPDIR || true
 
 # might not be exported if we're running from init=/bin/sh or similar
-export d="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 DEBOOTSTRAP_DIR=/usr/share/debootstrap
 dscriptdir=$DEBOOTSTRAP_DIR/scripts/
 
@@ -15,7 +15,7 @@ cmderr() { err "Command failed"; }
 cderr() { err "d build is not found"; }
 
 clean() {
-  umount build
+  umount -Rf build
   rm -f $DEBOOTSTRAP_DIR/arch
 
   rm -f "$dscriptdir/$branch"
@@ -61,7 +61,7 @@ while [[ $1 ]]; do
   shift 2
 done
 
-default_mirror=http://deb.devuan.org/merged
+default_mirror=http://deb.devuan.org
 [ -z "$mirror" ] && read -rp "Enter mirror (default: $default_mirror): " mirror
 mirror=${mirror:-$default_mirror}
 
@@ -79,8 +79,8 @@ echo "Generate to $dist"
 
 PWD=$(pwd)
 
-rm -rf build dist tmp
-mkdir -p build dist tmp
+rm -rf build dist tmp/upper tmp/work
+mkdir -p build dist tmp/upper tmp/work
 
 build_chroot() {
   dd if=/dev/zero of=base.img bs=1M count=1 seek=1024
@@ -91,7 +91,7 @@ build_chroot() {
   if [ -f "$dscriptdir/$branch" ]; then
     mv "$dscriptdir/$branch" "$dscriptdir/$branch.bak"
   fi
-  sed "s|@mirror@|$mirror|g" scripts/blissos >"$dscriptdir/$branch"
+  sed "s|@mirror@|$mirror/merged|g" scripts/blissos >"$dscriptdir/$branch"
 
   echo "$arch" >$DEBOOTSTRAP_DIR/arch
 
@@ -103,20 +103,18 @@ build_chroot() {
     --no-check-certificate \
     --no-check-gpg \
     "$branch" build
-
-  cp -r template/* build
 }
 
 if [ -f base.img ]; then
-  mount base.img build -o loop
+  mount base.img build -o loop,ro
 else
   build_chroot
 fi
 
-mkdir -p tmp/upper tmp/work
+mkdir -p tmp/upper tmp/work tmp/cache
 
 mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work
-mkdir -p tmp/upper tmp/work
+cp -r template/* build
 
 mount proc build/proc -t proc -o nosuid,noexec,nodev
 mount sys build/sys -t sysfs -o nosuid,noexec,nodev,ro
@@ -125,11 +123,10 @@ mount devpts build/dev/pts -t devpts -o mode=0620,gid=5,nosuid,noexec
 mount shm build/dev/shm -t tmpfs -o mode=1777,nosuid,nodev
 mount run build/run -t tmpfs -o nosuid,nodev,mode=0755
 mount tmp build/tmp -t tmpfs -o mode=1777,strictatime,nodev,nosuid
+mount tmp/cache build/var/cache/apt/archives -o bind
 
 grep -Ev '^#' pkglist.txt | xargs chroot build /bin/apt install -y --no-install-recommends --no-install-suggests
-grep -Ev '^#' rmlist.txt | xargs chroot build /bin/dpkg --remove --force-depends
-
-cp -n build/etc/init.d tmp/upper/etc
+grep -Ev '^#' rmlist.txt | xargs chroot build /bin/dpkg --remove --force-depends --force-remove-essential || :
 
 for d in \
   bin \
@@ -178,12 +175,27 @@ cat <<EOF >build/usr/sbin/autologin
 exec login -f root
 EOF
 chmod +x build/usr/sbin/autologin
-sed -i 's@1::respawn:/sbin/getty@1::respawn:/sbin/getty -n -l /usr/sbin/autologin@g' build/etc/inittab
+sed -i 's@1:2345:respawn:/sbin/getty@1:2345:respawn:/sbin/getty -n -l /usr/sbin/autologin@g' build/etc/inittab
 sed -i -r 's|^(root:.*:)/bin/d?a?sh$|\1/bin/bash|g' build/etc/passwd
 
 # shellcheck disable=SC2016
-echo '[ -z "$DISPLAY" ] && { startx /usr/bin/xterm; poweroff; }' >build/root/.bash_profile
+echo '[ -z "$DISPLAY" ] && { startx /usr/bin/calamares; poweroff; }' >build/root/.bash_profile
 chmod +x build/root/.bash_profile
+
+cp -rn -t tmp/upper/etc \
+  build/etc/init.d \
+  build/etc/profile \
+  build/etc/profile.d \
+  build/etc/ld.so.conf \
+  build/etc/ld.so.conf.d \
+  build/etc/inittab \
+  build/etc/rc.local \
+  build/etc/rc.shutdown
+
+{
+  ln -s /bin/cat build/usr/local/bin/pager
+  chroot build /bin/dpkg -l >.pkgs
+}
 
 for d in \
   etc/apt \
@@ -202,6 +214,7 @@ for d in \
 done
 
 for mnt in \
+  var/cache/apt/archives \
   tmp \
   run \
   dev/shm \
@@ -212,6 +225,12 @@ for mnt in \
   /; do
   umount "build/$mnt"
 done
+
+for d in libselinux.so.1 libc.so.6 ld-linux-x86-64.so.2; do
+  ln -s x86_64-linux-gnu/$d tmp/upper/lib
+done
+
+chroot tmp/upper /bin/busybox --install -s /bin
 
 clean
 

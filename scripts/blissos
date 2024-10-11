@@ -42,7 +42,7 @@ get_depends() {
 }
 
 work_out_debs() {
-  required="$(get_debs Priority: required) busybox"
+  required="$(get_debs Priority: required) busybox libc-bin"
   devuan_required=""
 
   if doing_variant - || doing_variant fakechroot; then
@@ -60,11 +60,11 @@ work_out_debs() {
     required="$required binutils"
   fi
 
-  # case $MIRRORS in
-  # https://*)
-  #   base="$base apt-transport-https ca-certificates"
-  #   ;;
-  # esac
+  case $MIRRORS in
+  https://*)
+    base="$base apt-transport-https ca-certificates"
+    ;;
+  esac
 
   # Fixup dependencies: debootstrap doesn't resolve alternatives, so we
   # need manual fixes.
