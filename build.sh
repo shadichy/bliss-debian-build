@@ -187,8 +187,8 @@ sed -i 's@1:2345:respawn:/sbin/getty@1:2345:respawn:/sbin/getty -n -l /usr/sbin/
 sed -i -r 's|^(root:.*:)/bin/d?a?sh$|\1/bin/bash|g' build/etc/passwd
 
 # shellcheck disable=SC2016
-# echo '[ -z "$DISPLAY" ] && { startx /usr/bin/xterm; poweroff; }' >build/root/.bash_profile
-# chmod +x build/root/.bash_profile
+echo '[ -z "$DISPLAY" ] && { startx /usr/bin/jwm; poweroff; }' >build/root/.bash_profile
+chmod +x build/root/.bash_profile
 
 cp -rn -t tmp/upper/etc \
   build/etc/init.d \
@@ -234,10 +234,15 @@ for d in libselinux.so.1 libc.so.6 ld-linux-x86-64.so.2; do
 done
 
 find tmp/upper/usr/{s,}bin -type c -exec rm -f {} +
+rm -rf tmp/upper/lib/{firmware,modules}
+
+ln -s /system/lib/modules /vendor/firmware tmp/upper/lib/
 
 chroot tmp/upper /bin/busybox --install -s /bin
 
 chroot tmp/upper /sbin/update-rc.d dbus defaults
+chroot tmp/upper /sbin/update-rc.d udev defaults
+chroot tmp/upper /sbin/update-rc.d eudev defaults
 
 # find tmp/upper/etc -type c -exec rm -f {} +
 find tmp/upper/etc/rc*.d/ -type c | while read -r svc; do
