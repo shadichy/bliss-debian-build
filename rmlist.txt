@@ -1,8 +1,8 @@
 libx11proto-dev
 debconf
 debianutils
-fonts-dejavu-core
-fonts-dejavu-mono
+# fonts-dejavu-core
+# fonts-dejavu-mono
 kinit-dev
 kirigami2-dev
 libasound2-data
@@ -68,5 +68,3 @@ qtscript5-dev
 qttools5-dev
 qttools5-dev-tools
 xtrans-dev
-docbook-xml
-docbook-xsl

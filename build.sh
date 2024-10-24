@@ -48,7 +48,13 @@ if (($(id -u) != 0)); then
   exit $?
 fi
 
-trap 'err Command returned $?' EXIT
+# shellcheck disable=SC2317
+exit_check() {
+	[ "$1" != 0 ] && err "Command failed";
+	exit "$1"
+}
+
+trap 'exit_check $?' EXIT
 
 while [[ $1 ]]; do
   case $1 in
@@ -125,7 +131,9 @@ mount run build/run -t tmpfs -o nosuid,nodev,mode=0755
 mount tmp build/tmp -t tmpfs -o mode=1777,strictatime,nodev,nosuid
 mount tmp/cache build/var/cache/apt/archives -o bind
 
-grep -Ev '^#' pkglist.txt | xargs chroot build /bin/apt install -y --no-install-recommends --no-install-suggests
+grep 'trusted=yes' build/etc/apt/sources.list || sed -i -r 's|$| [trusted=yes]|g' build/etc/apt/sources.list
+chroot build /bin/apt update --allow-unauthenticated
+grep -Ev '^#' pkglist.txt | xargs chroot build /bin/apt install -y --no-install-recommends --no-install-suggests --allow-unauthenticated
 grep -Ev '^#' rmlist.txt | xargs chroot build /bin/dpkg --remove --force-depends --force-remove-essential || :
 
 for d in \
@@ -179,8 +187,8 @@ sed -i 's@1:2345:respawn:/sbin/getty@1:2345:respawn:/sbin/getty -n -l /usr/sbin/
 sed -i -r 's|^(root:.*:)/bin/d?a?sh$|\1/bin/bash|g' build/etc/passwd
 
 # shellcheck disable=SC2016
-echo '[ -z "$DISPLAY" ] && { startx /usr/bin/calamares; poweroff; }' >build/root/.bash_profile
-chmod +x build/root/.bash_profile
+# echo '[ -z "$DISPLAY" ] && { startx /usr/bin/xterm; poweroff; }' >build/root/.bash_profile
+# chmod +x build/root/.bash_profile
 
 cp -rn -t tmp/upper/etc \
   build/etc/init.d \
@@ -191,11 +199,6 @@ cp -rn -t tmp/upper/etc \
   build/etc/inittab \
   build/etc/rc.local \
   build/etc/rc.shutdown
-
-{
-  ln -s /bin/cat build/usr/local/bin/pager
-  chroot build /bin/dpkg -l >.pkgs
-}
 
 for d in \
   etc/apt \
@@ -230,7 +233,19 @@ for d in libselinux.so.1 libc.so.6 ld-linux-x86-64.so.2; do
   ln -s x86_64-linux-gnu/$d tmp/upper/lib
 done
 
+find tmp/upper/usr/{s,}bin -type c -exec rm -f {} +
+
 chroot tmp/upper /bin/busybox --install -s /bin
+
+chroot tmp/upper /sbin/update-rc.d dbus defaults
+
+# find tmp/upper/etc -type c -exec rm -f {} +
+find tmp/upper/etc/rc*.d/ -type c | while read -r svc; do
+  rsvc=$(echo "$svc" | sed -r 's|.*[SK][0-9]{2}||g')
+  [ -f tmp/upper/etc/init.d/"$rsvc" ] || continue 
+  rm "$svc"
+  ln -s ../init.d/"$rsvc" "$svc"
+done
 
 clean
 

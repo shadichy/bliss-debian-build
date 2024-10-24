@@ -1,6 +1,10 @@
 # Core
 sysvinit-core
-init-system-helpers
+orphan-sysvinit-scripts
+procps
+acpid
+# init-system-helpers
+# initscripts
 bash
 busybox
 
@@ -64,6 +68,7 @@ mc
 calamares
 calamares-extensions
 calamares-extensions-data
+calamares-settings-debian
 gparted
 
 # Miscs
