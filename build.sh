@@ -112,7 +112,7 @@ build_chroot() {
     --verbose \
     --no-check-certificate \
     --no-check-gpg \
-    "$branch" build || :
+    "$branch" build || find build
 }
 
 if [ -f base.img ]; then
