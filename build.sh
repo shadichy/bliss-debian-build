@@ -113,9 +113,7 @@ build_chroot() {
     --no-check-certificate \
     --no-check-gpg \
     "$branch" build || {
-    ls -lA build
-    ls -lA build/usr
-    ls -lA build/bin
+    :
   }
 }
 
@@ -141,9 +139,9 @@ mount tmp/cache build/var/cache/apt/archives -o bind
 
 # grep 'trusted=yes' build/etc/apt/sources.list || sed -i -r 's|$| [trusted=yes]|g' build/etc/apt/sources.list
 echo "deb $mirror/merged $branch main [trusted=yes]" >build/etc/apt/sources.list
-chroot build /bin/apt update --allow-unauthenticated
-grep -Ev '^#' pkglist.txt | xargs chroot build /bin/apt install -y --no-install-recommends --no-install-suggests --allow-unauthenticated
-grep -Ev '^#' rmlist.txt | xargs chroot build /bin/dpkg --remove --force-depends --force-remove-essential || :
+chroot build /usr/bin/apt update --allow-unauthenticated
+grep -Ev '^#' pkglist.txt | xargs chroot build /usr/bin/apt install -y --no-install-recommends --no-install-suggests --allow-unauthenticated
+grep -Ev '^#' rmlist.txt | xargs chroot build /usr/bin/dpkg --remove --force-depends --force-remove-essential || :
 
 for d in \
   bin \
