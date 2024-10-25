@@ -27,6 +27,7 @@ jobs:
 
       - name: Install debootstrap
         run: |
+          sudo apt update
           sudo apt install debootstrap bash
 
       - name: Build install image
