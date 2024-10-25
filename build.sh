@@ -247,11 +247,11 @@ rm -rf tmp/upper/lib/{firmware,modules}
 
 ln -s /system/lib/modules /vendor/firmware tmp/upper/lib/
 
-chroot tmp/upper /bin/busybox --install -s /bin
+chroot tmp/upper /usr/bin/busybox --install -s /bin
 
-chroot tmp/upper /sbin/update-rc.d dbus defaults
-chroot tmp/upper /sbin/update-rc.d udev defaults
-chroot tmp/upper /sbin/update-rc.d eudev defaults
+chroot tmp/upper /usr/sbin/update-rc.d dbus defaults
+chroot tmp/upper /usr/sbin/update-rc.d udev defaults
+chroot tmp/upper /usr/sbin/update-rc.d eudev defaults
 
 # find tmp/upper/etc -type c -exec rm -f {} +
 find tmp/upper/etc/rc*.d/ -type c | while read -r svc; do
