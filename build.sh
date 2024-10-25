@@ -135,7 +135,8 @@ mount run build/run -t tmpfs -o nosuid,nodev,mode=0755
 mount tmp build/tmp -t tmpfs -o mode=1777,strictatime,nodev,nosuid
 mount tmp/cache build/var/cache/apt/archives -o bind
 
-grep 'trusted=yes' build/etc/apt/sources.list || sed -i -r 's|$| [trusted=yes]|g' build/etc/apt/sources.list
+# grep 'trusted=yes' build/etc/apt/sources.list || sed -i -r 's|$| [trusted=yes]|g' build/etc/apt/sources.list
+echo "deb $mirror/merged $branch main [trusted=yes]" > build/etc/apt/sources.list
 chroot build /bin/apt update --allow-unauthenticated
 grep -Ev '^#' pkglist.txt | xargs chroot build /bin/apt install -y --no-install-recommends --no-install-suggests --allow-unauthenticated
 grep -Ev '^#' rmlist.txt | xargs chroot build /bin/dpkg --remove --force-depends --force-remove-essential || :
