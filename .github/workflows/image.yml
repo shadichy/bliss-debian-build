@@ -32,7 +32,7 @@ jobs:
 
       - name: Build install image
         run: |
-          ./build.sh -a amd64 -b ceres -m https://deb.devuan.org -o dist/install.sfs
+          ./build.sh -a amd64 -b ceres -m https://gnlug.org/pub/devuan -o dist/install.sfs
 
       - name: Upload install.sfs
         uses: actions/upload-artifact@v4
