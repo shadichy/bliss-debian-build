@@ -8,10 +8,14 @@ unset TMP TEMP TMPDIR || true
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 DEBOOTSTRAP_DIR=/usr/share/debootstrap
 dscriptdir=$DEBOOTSTRAP_DIR/scripts/
+this_command=
+previous_command=
+
+trap 'previous_command=$this_command; this_command=$BASH_COMMAND' DEBUG
 
 err() { echo -e "ERROR: $* !" && clean && exit 1; }
 argerr() { err "Cannot set build to empty"; }
-cmderr() { err "Command failed"; }
+cmderr() { err "Command $previous_command failed"; }
 cderr() { err "d build is not found"; }
 
 clean() {
@@ -50,8 +54,8 @@ fi
 
 # shellcheck disable=SC2317
 exit_check() {
-	[ "$1" != 0 ] && err "Command failed";
-	exit "$1"
+  [ "$1" != 0 ] && cmderr
+  exit "$1"
 }
 
 trap 'exit_check $?' EXIT
@@ -247,7 +251,7 @@ chroot tmp/upper /sbin/update-rc.d eudev defaults
 # find tmp/upper/etc -type c -exec rm -f {} +
 find tmp/upper/etc/rc*.d/ -type c | while read -r svc; do
   rsvc=$(echo "$svc" | sed -r 's|.*[SK][0-9]{2}||g')
-  [ -f tmp/upper/etc/init.d/"$rsvc" ] || continue 
+  [ -f tmp/upper/etc/init.d/"$rsvc" ] || continue
   rm "$svc"
   ln -s ../init.d/"$rsvc" "$svc"
 done
