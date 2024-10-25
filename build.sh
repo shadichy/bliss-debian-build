@@ -254,4 +254,4 @@ done
 
 clean
 
-mksquashfs tmp/upper "$dist" -comp zstd -Xcompression-level 22 -b 1M -noappend -no-duplicates -no-recovery -always-use-fragments
+mksquashfs tmp/upper "$dist" -comp zstd -Xcompression-level 22 -noappend -no-duplicates -no-recovery -always-use-fragments

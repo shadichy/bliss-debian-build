@@ -62,7 +62,8 @@ efibootmgr
 # Basic GUI's
 jwm
 xterm
-mc
+pcmanfm
+ncurses-base
 
 # Main
 calamares
