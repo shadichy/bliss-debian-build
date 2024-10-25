@@ -194,7 +194,7 @@ sed -i 's@1:2345:respawn:/sbin/getty@1:2345:respawn:/sbin/getty -n -l /usr/sbin/
 sed -i -r 's|^(root:.*:)/bin/d?a?sh$|\1/bin/bash|g' build/etc/passwd
 
 # shellcheck disable=SC2016
-echo '[ -z "$DISPLAY" ] && { startx /usr/bin/jwm; poweroff; }' >build/root/.bash_profile
+echo 'udevadm trigger && [ -z "$DISPLAY" ] && { startx /usr/bin/jwm; poweroff; }' >build/root/.bash_profile
 chmod +x build/root/.bash_profile
 
 cp -rn -t tmp/upper/etc \
