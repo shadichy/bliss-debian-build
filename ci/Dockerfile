@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1-labs
 FROM devuan/migrated:excalibur-slim
 
 COPY . /
