@@ -128,6 +128,7 @@ if [ ! -f base.img ] || ! mount base.img build -o loop,ro; then
 fi
 
 mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work
+dmesg | tail -10
 cp -r template/* build
 
 mount proc build/proc -t proc -o nosuid,noexec,nodev
