@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker buildx create --use --name devuan-dev --buildkitd-flags '--allow-insecure-entitlement security.insecure' devuan
+          docker buildx create --use --name devuan-dev --buildkitd-flags '--allow-insecure-entitlement security.insecure'
           docker buildx build --builder devuan-dev -f ci/Dockerfile -t devuan --allow security.insecure .
 
       - name: Extract RootFS & generate install.sfs
