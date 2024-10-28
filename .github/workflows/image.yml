@@ -28,20 +28,20 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -f ci/Dockerfile . -t devuan
+          sudo docker build -f ci/Dockerfile . -t devuan
 
       - name: Extract RootFS & generate install.sfs
         run: |
           # Create Docker image
-          docker create --name devuan devuan echo "Devuan"
+          sudo docker create --name devuan devuan echo "Devuan"
           # Export it to install
           mkdir install
-          docker export devuan | tar -C install -p -s -xv
+          sudo docker export devuan | sudo tar -C install -p -s -xv
           # Move install.sfs out
-          mv install/install.sfs .
+          sudo mv install/install.sfs .
           # Clean up
           sudo rm -rf install
-          docker rm devuan
+          sudo docker rm devuan
 
       - name: Set Vars
         id: vars
