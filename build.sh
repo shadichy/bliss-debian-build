@@ -90,7 +90,7 @@ echo "Generate to $dist"
 PWD=$(pwd)
 
 rm -rf build dist tmp/upper tmp/work
-mkdir -p build dist tmp/upper tmp/work
+mkdir -p build dist tmp/upper tmp/work tmp/cache
 
 build_chroot() {
   dd if=/dev/zero of=base.img bs=1M count=1 seek=1024
@@ -117,13 +117,10 @@ build_chroot() {
   }
 }
 
-if [ -f base.img ]; then
-  mount base.img build -o loop,ro
-else
+if [ ! -f base.img ] || ! mount base.img build -o loop,ro; then
+  rm base.img || :
   build_chroot
 fi
-
-mkdir -p tmp/upper tmp/work tmp/cache
 
 mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work
 cp -r template/* build
@@ -137,9 +134,8 @@ mount run build/run -t tmpfs -o nosuid,nodev,mode=0755
 mount tmp build/tmp -t tmpfs -o mode=1777,strictatime,nodev,nosuid
 mount tmp/cache build/var/cache/apt/archives -o bind
 
-# grep 'trusted=yes' build/etc/apt/sources.list || sed -i -r 's|$| [trusted=yes]|g' build/etc/apt/sources.list
-echo "deb $mirror/merged $branch main [trusted=yes]" >build/etc/apt/sources.list
-chroot build /usr/bin/apt update --allow-unauthenticated
+echo "deb [trusted=yes] $mirror/merged $branch main" >build/etc/apt/sources.list
+chroot build /usr/bin/apt update
 grep -Ev '^#' pkglist.txt | xargs chroot build /usr/bin/apt install -y --no-install-recommends --no-install-suggests --allow-unauthenticated
 grep -Ev '^#' rmlist.txt | xargs chroot build /usr/bin/dpkg --remove --force-depends --force-remove-essential || :
 
@@ -169,14 +165,9 @@ for d in \
 done
 
 for d in \
-  data \
-  data_mirror \
   system \
-  storage \
-  sdcard \
   apex \
   linkerconfig \
-  debug_ramdisk \
   system_ext \
   product \
   vendor; do
@@ -194,7 +185,15 @@ sed -i 's@1:2345:respawn:/sbin/getty@1:2345:respawn:/sbin/getty -n -l /usr/sbin/
 sed -i -r 's|^(root:.*:)/bin/d?a?sh$|\1/bin/bash|g' build/etc/passwd
 
 # shellcheck disable=SC2016
-echo 'udevadm trigger && [ -z "$DISPLAY" ] && { startx /usr/bin/jwm; poweroff; }' >build/root/.bash_profile
+cat <<'EOF' >build/root/.bash_profile
+#!/bin/bash
+udevadm trigger
+fc-cache -fv
+if [ -z "$DISPLAY" ] && ! pidof X; then
+  startx /usr/bin/jwm
+  poweroff
+fi
+EOF
 chmod +x build/root/.bash_profile
 
 cp -rn -t tmp/upper/etc \
@@ -241,11 +240,13 @@ for d in libselinux.so.1 libc.so.6 ld-linux-x86-64.so.2; do
 done
 
 find tmp/upper/usr/{s,}bin -type c -exec rm -f {} +
-rm -rf tmp/upper/lib/{firmware,modules}
-
-ln -s /system/lib/modules /vendor/firmware tmp/upper/lib/
 
 chroot tmp/upper /usr/bin/busybox --install -s /bin
+
+rm -rf tmp/upper/lib/{firmware,modules}
+ln -s /system/lib/modules /vendor/firmware tmp/upper/lib/
+mkdir -p tmp/upper/usr/share/fonts/truetype
+ln -s /system/fonts tmp/upper/usr/share/fonts/truetype/android
 
 chroot tmp/upper /usr/sbin/update-rc.d dbus defaults
 chroot tmp/upper /usr/sbin/update-rc.d udev defaults
@@ -258,6 +259,8 @@ find tmp/upper/etc/rc*.d/ -type c | while read -r svc; do
   rm "$svc"
   ln -s ../init.d/"$rsvc" "$svc"
 done
+
+find tmp/upper/usr/lib/x86_64-linux-gnu -iname "*.cmake" -exec rm -f {} +
 
 clean
 
