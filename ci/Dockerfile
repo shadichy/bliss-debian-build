@@ -6,6 +6,6 @@ COPY . /
 RUN apt update && apt upgrade -y
 
 # Install debootstrap
-RUN  apt install -y debootstrap bash
+RUN yes | apt install debootstrap bash || :
 
-RUN ./build.sh -a amd64 -b ceres -m https://gnlug.org/pub/devuan -o install.sfs
+RUN ./build.sh -a amd64 -b excalibur -m https://gnlug.org/pub/devuan -o install.sfs
