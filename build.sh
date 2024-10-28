@@ -127,7 +127,7 @@ if [ ! -f base.img ] || ! mount base.img build -o loop,ro; then
   build_chroot
 fi
 
-mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work | :
+mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work || :
 dmesg | tail -10
 exit 1
 cp -r template/* build
