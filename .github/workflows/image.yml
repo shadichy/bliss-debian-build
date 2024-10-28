@@ -35,7 +35,7 @@ jobs:
         run: |
           # Export it to install
           mkdir install
-          sudo tar -C install -psxv install.tar
+          sudo tar -C install -psxvf install.tar
           # Move install.sfs out
           mv install/install.sfs .
           # Clean up
