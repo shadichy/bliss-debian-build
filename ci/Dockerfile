@@ -7,7 +7,7 @@ COPY . /
 RUN apt update && apt upgrade -y
 
 # Install debootstrap
-RUN yes | apt install debootstrap bash || :
+RUN yes | apt install debootstrap bash squashfs-tools || :
 
 USER root
 RUN --security=insecure env NOLOOP=1 USE_TMPFS=1 ./build.sh -a amd64 -b excalibur -m https://gnlug.org/pub/devuan -o install.sfs
