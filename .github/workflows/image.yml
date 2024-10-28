@@ -28,11 +28,13 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker buildx create --use --name devuan --buildkitd-flags '--allow-insecure-entitlement security.insecure'
-          docker buildx build --builder devuan -f ci/Dockerfile -t devuan --allow security.insecure .
+          docker buildx create --use --name devuan-dev --buildkitd-flags '--allow-insecure-entitlement security.insecure' devuan
+          docker buildx build --builder devuan-dev -f ci/Dockerfile -t devuan --allow security.insecure .
 
       - name: Extract RootFS & generate install.sfs
         run: |
+          # Create Docker image
+          docker create --name devuan devuan echo "Devuan"
           # Export it to install
           mkdir install
           docker export devuan | sudo tar -C install -p -s -xv
