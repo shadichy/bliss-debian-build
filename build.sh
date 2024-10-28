@@ -90,7 +90,12 @@ echo "Generate to $dist"
 PWD=$(pwd)
 
 rm -rf build dist tmp/upper tmp/work
-mkdir -p build dist tmp/upper tmp/work tmp/cache
+mkdir -p build dist tmp
+
+if [ "$USE_TMPFS" ]; then
+  mount tmpfs tmp -t tmpfs
+fi
+mkdir -p tmp/upper tmp/work tmp/cache
 
 build_chroot() {
   if [ "$NOLOOP" ]; then
@@ -127,9 +132,7 @@ if [ ! -f base.img ] || ! mount base.img build -o loop,ro; then
   build_chroot
 fi
 
-mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work || :
-dmesg | tail -10
-exit 1
+mount overlay build -t overlay -o lowerdir=build,upperdir=tmp/upper,workdir=tmp/work
 cp -r template/* build
 
 mount proc build/proc -t proc -o nosuid,noexec,nodev
