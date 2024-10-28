@@ -8,4 +8,4 @@ RUN apt update && apt upgrade -y
 # Install debootstrap
 RUN yes | apt install debootstrap bash || :
 
-RUN ./build.sh -a amd64 -b excalibur -m https://gnlug.org/pub/devuan -o install.sfs
+RUN env NOLOOP=1 ./build.sh -a amd64 -b excalibur -m https://gnlug.org/pub/devuan -o install.sfs

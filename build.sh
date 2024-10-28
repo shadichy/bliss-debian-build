@@ -93,10 +93,15 @@ rm -rf build dist tmp/upper tmp/work
 mkdir -p build dist tmp/upper tmp/work tmp/cache
 
 build_chroot() {
-  dd if=/dev/zero of=base.img bs=1M count=1 seek=1024
-  mkfs.ext4 base.img
+  if [ "$NOLOOP" ]; then
+    mkdir -p build_noloop
+    mount build_noloop build --bind
+  else
+    dd if=/dev/zero of=base.img bs=1M count=1 seek=1024
+    mkfs.ext4 base.img
 
-  mount base.img build -o loop
+    mount base.img build -o loop
+  fi
 
   if [ -f "$dscriptdir/$branch" ]; then
     mv "$dscriptdir/$branch" "$dscriptdir/$branch.bak"
