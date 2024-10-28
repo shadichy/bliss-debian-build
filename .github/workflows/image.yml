@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          sudo docker build -f ci/Dockerfile . -t devuan
+          sudo docker buildx build -f ci/Dockerfile . -t devuan --allow security.insecure
 
       - name: Extract RootFS & generate install.sfs
         run: |
