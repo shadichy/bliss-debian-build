@@ -226,10 +226,17 @@ for d in \
   usr/share/info \
   usr/share/man \
   usr/share/man-db \
-  var/cache/* \
+  var/cache \
   var/lib/apt \
-  var/lib/dpkg; do
+  var/lib/dpkg \
+  var/log; do
   rm -rf tmp/upper/"$d"
+done
+
+for d in \
+  var/cache \
+  var/log; do
+  mkdir -p tmp/upper/"$d"
 done
 
 for mnt in \

@@ -3,18 +3,16 @@ sysvinit-core
 orphan-sysvinit-scripts
 procps
 acpid
-# init-system-helpers
-# initscripts
 bash
 busybox
 
 # X11
+# the -all packages does not include all the needed drivers
 xserver-xorg-core
 xserver-xorg-video-all
 xserver-xorg-video-amdgpu
 xserver-xorg-video-ati
 xserver-xorg-video-cirrus
-xserver-xorg-video-dummy
 xserver-xorg-video-fbdev
 xserver-xorg-video-glide
 xserver-xorg-video-intel
@@ -59,22 +57,29 @@ f2fs-tools
 btrfs-progs
 efibootmgr
 
-# Basic GUI's
+# Supposedly we want to install a DE, but Xfce seems to tax us a lot of resources
+# So we decided to use JWM, with some extra tools
+# a file manager (doublecmd-qt), a terminal (xterm) and a text editor (l3afpad)
 jwm
 xterm
 pcmanfm
-ncurses-base
+l3afpad
 
 # Main
 calamares
 calamares-extensions
 calamares-extensions-data
 calamares-settings-debian
-gparted
 
 # Miscs
+# Some CLI tool I would like to have :)
+nano
 htop
 fastfetch
+# For JWM power menu
 gxmessage
 consolekit
+# GParted as an GUI disk management solution
+gparted
+# ntfs-3g if someone doesn't want to use NTFS3, or want to use mkfs.ntfs
 ntfs-3g

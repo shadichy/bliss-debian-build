@@ -1,6 +1,7 @@
 libx11proto-dev
 debconf
 debianutils
+extra-cmake-modules
 fonts-dejavu-core
 fonts-dejavu-mono
 kinit-dev
